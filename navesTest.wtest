@@ -23,7 +23,17 @@ describe "Nave de carga" {
 
 	test "recibir amenaza" {
 		naveLlena.recibirAmenaza()
-		assert.equals(0, naveVacia.carga())
+		assert.equals(0, naveLlena.carga())
+	}
+
+	test "propulsar nave comun" {
+		naveVacia.propulsar()
+		assert.equals(20000, naveVacia.velocidad())
+	}
+
+	test "propulsar nave muy rapida" {
+		naveLlena.propulsar()
+		assert.equals(300000, naveLlena.velocidad())
 	}
 
 }
@@ -52,35 +62,69 @@ describe "Nave de pasajeros" {
 	test "recibir amenaza" {
 		naveSinPasajeros.recibirAmenaza()
 		assert.that(naveSinPasajeros.alarma())
+		assert.that(naveSinPasajeros.estaEnPeligro())
 	}
 
+	test "propulsar nave comun" {
+		naveSinPasajeros.propulsar()
+		assert.equals(20000, naveSinPasajeros.velocidad())
+	}
+
+	test "propulsar nave muy rapida" {
+		naveConPasajeros.propulsar()
+		assert.equals(300000, naveConPasajeros.velocidad())
+	}
 }
 
 describe "Nave de combate" {
-
-	const naveEnReposo = new NaveDeCombate()
-	const naveEnAtaque = new NaveDeCombate(modo = ataque)
+	test "esta invisible en reposo" {
+		const nave = new NaveDeCombate()
+		assert.that(nave.estaInvisible())
+	}
 
 	test "no esta invisible en reposo" {
-		assert.notThat(naveEnReposo.estaInvisible())
+		const nave = new NaveDeCombate(velocidad = 20000)
+		assert.notThat(nave.estaInvisible())
 	}
 
 	test "esta invisible en ataque" {
-		assert.that(naveEnAtaque.estaInvisible())
+		const nave = new NaveDeCombate(modo=ataque)
+		assert.that(nave.estaInvisible())
 	}
 
 	test "no esta invisible en ataque" {
-		naveEnAtaque.velocidad(20000)
-		assert.notThat(naveEnAtaque.estaInvisible())
+		const nave = new NaveDeCombate(modo=ataque, tieneArmasDesplegadas=true)
+		assert.notThat(nave.estaInvisible())
 	}
 
 	test "recibir amenaza en reposo" {
-		naveEnReposo.recibirAmenaza()
-		assert.equals("¡RETIRADA!", naveEnReposo.ultimoMensaje())
+		const nave = new NaveDeCombate()
+		nave.recibirAmenaza()
+		assert.equals("¡RETIRADA!", nave.ultimoMensaje())
 	}
 
 	test "recibir amenaza en ataque" {
-		naveEnAtaque.recibirAmenaza()
-		assert.equals("Enemigo encontrado", naveEnAtaque.ultimoMensaje())
+		const nave = new NaveDeCombate(modo=ataque)
+		nave.recibirAmenaza()
+		assert.equals("Enemigo encontrado", nave.ultimoMensaje())
+		assert.that(nave.tieneArmasDesplegadas())
+	}
+}
+
+describe "Nave de carga de residuos radiactivos" {
+	test "Nave no sellada al vacio" {
+		const nave = new NaveDeCargaDeResiduosRadiactivos(velocidad=10, carga=10)
+		nave.recibirAmenaza()
+		assert.equals(10, nave.carga())
+		assert.equals(0, nave.velocidad())
+	}
+
+	test "Nave sellada al vacio" {
+		const nave = new NaveDeCargaDeResiduosRadiactivos(
+			velocidad=10, carga=10, selladaAlVacio=true
+		)
+		nave.recibirAmenaza()
+		assert.equals(10, nave.carga())
+		assert.equals(0, nave.velocidad())
 	}
 }

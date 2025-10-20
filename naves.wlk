@@ -1,6 +1,14 @@
-class NaveDeCarga {
+class Nave {
+	var property velocidad = 0
+	const INCREMENTO_VELOCIDAD_POR_PROPULSION = 20000
+	const LIMITE_VELOCIDAD = 300000
 
-	var velocidad = 0
+	method propulsar() {
+		velocidad = (velocidad + INCREMENTO_VELOCIDAD_POR_PROPULSION).min(LIMITE_VELOCIDAD)
+	}
+}
+
+class NaveDeCarga inherits Nave {
 	var property carga = 0
 
 	method sobrecargada() = carga > 100000
@@ -13,28 +21,37 @@ class NaveDeCarga {
 
 }
 
-class NaveDePasajeros {
+class NaveDeCargaDeResiduosRadiactivos inherits NaveDeCarga {
+	var property selladaAlVacio = false 
 
-	var velocidad = 0
+	override method recibirAmenaza() {
+		if (selladaAlVacio) self.velocidad(0) else super()
+	}
+}
+
+class NaveDePasajeros inherits Nave {
+
 	var property alarma = false
 	const cantidadDePasajeros = 0
 
-	method tripulacion() = cantidadDePasajeros + 4
+	method cantidadDePersonasABordo() = cantidadDePasajeros + 4
 
-	method velocidadMaximaLegal() = 300000 / self.tripulacion() - if (cantidadDePasajeros > 100) 200 else 0
+	method velocidadMaximaLegal() = 
+		300000 / self.cantidadDePersonasABordo() - self.reduccionVelocidadPorMedidasDeSeguridad()
 
-	method estaEnPeligro() = velocidad > self.velocidadMaximaLegal() or alarma
+	method reduccionVelocidadPorMedidasDeSeguridad() = if (cantidadDePasajeros > 100) 200 else 0
+
+	method estaEnPeligro() = self.velocidad() > self.velocidadMaximaLegal() or alarma
 
 	method recibirAmenaza() {
 		alarma = true
 	}
-
 }
 
-class NaveDeCombate {
-	var property velocidad = 0
+class NaveDeCombate inherits Nave {
 	var property modo = reposo
 	const property mensajesEmitidos = []
+	var property tieneArmasDesplegadas = false
 
 	method emitirMensaje(mensaje) {
 		mensajesEmitidos.add(mensaje)
@@ -42,7 +59,7 @@ class NaveDeCombate {
 	
 	method ultimoMensaje() = mensajesEmitidos.last()
 
-	method estaInvisible() = velocidad < 10000 and modo.invisible()
+	method estaInvisible() = modo.invisible(self)
 
 	method recibirAmenaza() {
 		modo.recibirAmenaza(self)
@@ -51,8 +68,7 @@ class NaveDeCombate {
 }
 
 object reposo {
-
-	method invisible() = false
+	method invisible(nave) = nave.velocidad() < 10000
 
 	method recibirAmenaza(nave) {
 		nave.emitirMensaje("¡RETIRADA!")
@@ -61,11 +77,11 @@ object reposo {
 }
 
 object ataque {
-
-	method invisible() = true
+	method invisible(nave) = not nave.tieneArmasDesplegadas()
 
 	method recibirAmenaza(nave) {
 		nave.emitirMensaje("Enemigo encontrado")
+		nave.tieneArmasDesplegadas(true)
 	}
 
 }
