@@ -1,10 +1,26 @@
 class Nave {
 	var property velocidad = 0
 	const INCREMENTO_VELOCIDAD_POR_PROPULSION = 20000
+	const INCREMENTO_VELOCIDAD_PARA_VIAJAR = 15000
 	const LIMITE_VELOCIDAD = 300000
 
 	method propulsar() {
-		velocidad = (velocidad + INCREMENTO_VELOCIDAD_POR_PROPULSION).min(LIMITE_VELOCIDAD)
+		self.incrementarVelocidad(INCREMENTO_VELOCIDAD_POR_PROPULSION)
+	}
+
+	method prepararseParaViajar() {
+		self.incrementarVelocidad(INCREMENTO_VELOCIDAD_PARA_VIAJAR)
+	}
+
+	method incrementarVelocidad(incrementoVelocidad) {
+		velocidad = (velocidad + incrementoVelocidad).min(LIMITE_VELOCIDAD)
+	}
+
+	method recibirAmenaza() 
+
+	method encontrarEnemigo() {
+		self.recibirAmenaza()
+		self.propulsar()
 	}
 }
 
@@ -15,7 +31,7 @@ class NaveDeCarga inherits Nave {
 
 	method excedidaDeVelocidad() = velocidad > 100000
 
-	method recibirAmenaza() {
+	override method recibirAmenaza() {
 		carga = 0
 	}
 
@@ -26,6 +42,11 @@ class NaveDeCargaDeResiduosRadiactivos inherits NaveDeCarga {
 
 	override method recibirAmenaza() {
 		if (selladaAlVacio) self.velocidad(0) else super()
+	}
+
+	override method prepararseParaViajar() {
+		super()
+		selladaAlVacio = true
 	}
 }
 
@@ -43,7 +64,7 @@ class NaveDePasajeros inherits Nave {
 
 	method estaEnPeligro() = self.velocidad() > self.velocidadMaximaLegal() or alarma
 
-	method recibirAmenaza() {
+	override method recibirAmenaza() {
 		alarma = true
 	}
 }
@@ -61,8 +82,13 @@ class NaveDeCombate inherits Nave {
 
 	method estaInvisible() = modo.invisible(self)
 
-	method recibirAmenaza() {
+	override method recibirAmenaza() {
 		modo.recibirAmenaza(self)
+	}
+
+	override method prepararseParaViajar() {
+		super()
+		modo.prepararseParaViajar(self)
 	}
 
 }
@@ -74,6 +100,9 @@ object reposo {
 		nave.emitirMensaje("¡RETIRADA!")
 	}
 
+	method prepararseParaViajar(nave) {
+		nave.emitirMensaje("Volviendo a la base")
+	}
 }
 
 object ataque {
@@ -84,4 +113,7 @@ object ataque {
 		nave.tieneArmasDesplegadas(true)
 	}
 
+	method prepararseParaViajar(nave) {
+		nave.emitirMensaje("Volviendo a la base")
+	}
 }
